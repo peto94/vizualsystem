@@ -1,10 +1,3 @@
-/*
-* File:   main.cpp
-* Author: sagar
-*
-* Created on 10 September, 2012, 7:48 PM
-*/
-
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
@@ -13,6 +6,14 @@
 
 using namespace cv;
 using namespace std;
+
+void drawStuff();
+void drawAllTriangles(Mat&, const vector< vector<Point> >&);
+
+Mat img_rgb, img_gray, canny_output, drawing;
+
+int thresht = 100;
+
 
 int saveimg();
 static void help()
@@ -23,7 +24,7 @@ static void help()
 }
 
 int thresh = 50, N = 5;
-const char* wndname = "Square Detection Demo";
+const char* wndname = "Detected square";
 
 // helper function:
 // finds a cosine of angle between vectors
@@ -162,7 +163,8 @@ int main(int argc, char** argv)
 		cout << "no image_name provided" << endl;
 		return -1;
 	}
-	Mat img = imread(filename, 0);
+
+	Mat img = imread("img/frame8.jpg", 0);
 	if (img.empty())
 	{
 		help();
@@ -187,7 +189,7 @@ int main(int argc, char** argv)
 	///////////////////////////////////////////////////////////////////////////////////
 	
 	vector<vector<Point> > squares;
-	static const char* names[] = { "img/frame7.jpg", "img/frame8.jpg",0 };
+	static const char* names[] = { "img/frame8.jpg",0 };
 	for (int i = 0; names[i] != 0; i++)
 	{
 		Mat image = imread(names[i], 1);
@@ -206,8 +208,13 @@ int main(int argc, char** argv)
 	}
 	imshow("detected", cimg);
 	waitKey();
-	return 0;
 
+	img_rgb = imread("img/frame8.jpg");
+	cvtColor(img_rgb, img_gray, CV_RGB2GRAY);
+	//imshow("InputImage", img_rgb);
+	drawStuff();
+	waitKey();
+	return 0;
 }
 
 int readimg(int no) {
@@ -305,8 +312,35 @@ int saveimg() {
 			circle(cimg, Point(c[0], c[1]), c[2], Scalar(0, 0, 255), 3, LINE_AA);
 			circle(cimg, Point(c[0], c[1]), 2, Scalar(0, 255, 0), 3, LINE_AA);
 		}
-		imshow("detected circles", cimg);
+		imshow("Detected Circle", cimg);
 		waitKey();
 		return 0;
+	}
+
+	void drawStuff() {
+		vector<vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		
+		Canny(img_gray, canny_output, thresht, thresht * 2, 3);
+		//imshow("Canny", canny_output);
+		findContours(canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		drawing = Mat::zeros(canny_output.size(), CV_8UC3);
+
+		drawAllTriangles(drawing, contours);
+		imshow("Detected tringle", drawing);
+	}
+
+	void drawAllTriangles(Mat& img, const vector< vector<Point> >& contours) {
+		vector<Point> approxTriangle;
+		for (size_t i = 0; i < contours.size(); i++) {
+			approxPolyDP(contours[i], approxTriangle, arcLength(Mat(contours[i]), true)*0.05, true);
+			if (approxTriangle.size() == 3) {
+				drawContours(img, contours, i, Scalar(0, 255, 255), CV_FILLED); // fill GREEN
+				vector<Point>::iterator vertex;
+				for (vertex = approxTriangle.begin(); vertex != approxTriangle.end(); ++vertex) {
+					circle(img, *vertex, 3, Scalar(0, 0, 255), 1);
+				}
+			}
+		}
 	}
 	

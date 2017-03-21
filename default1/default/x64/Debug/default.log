@@ -1,0 +1,4 @@
+﻿  Source.cpp
+c:\users\abalogize\documents\visual studio 2015\projects\default\default\source.cpp(267): warning C4715: 'saveimg': not all control paths return a value
+  default.vcxproj -> C:\Users\abalogize\Documents\Visual Studio 2015\Projects\default\x64\Debug\default.exe
+  default.vcxproj -> C:\Users\abalogize\Documents\Visual Studio 2015\Projects\default\x64\Debug\default.pdb (Full PDB)
